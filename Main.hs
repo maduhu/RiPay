@@ -11,7 +11,6 @@ import Network.Wai (Application)
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.RequestLogger (logStdoutDev)
 import Network.Wai.Middleware.Autohead (autohead)
-import Network.Wai.Middleware.Jsonp (jsonp)
 import Network.Wai.Middleware.AcceptOverride (acceptOverride)
 import Network.Wai.Application.Static (staticApp, defaultWebAppSettings)
 

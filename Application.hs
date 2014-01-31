@@ -1,14 +1,16 @@
 {-# LANGUAGE CPP #-}
-module Application (formRedirect, kwsoda) where
+module Application (formRedirect, kwsoda, ripple) where
 
 import Prelude ()
 import BasicPrelude
+import Data.Digest.Pure.MD5 (md5)
+import qualified Data.ByteString.Lazy as LZ
 
 import Network.Wai (Application, Response, queryString)
 import Network.HTTP.Types (ok200, badRequest400, seeOther303)
 import Network.Wai.Util (queryLookup, string, redirect', textBuilder, stringHeaders)
 
-import Network.URI (URI(..), escapeURIString, isUnescapedInURIComponent, parseAbsoluteURI)
+import Network.URI (URI(..), URIAuth(..), escapeURIString, isUnescapedInURIComponent, parseAbsoluteURI)
 
 import Records
 import MustacheTemplates
@@ -33,6 +35,11 @@ queryAppend uri@(URI {uriQuery = q}) (k,v)
 	pair = esc k ++ "=" ++ esc v
 	esc = escapeURIString isUnescapedInURIComponent
 
+-- | Append if the value exists
+maybeAppend :: String -> Maybe String -> URI -> URI
+maybeAppend k (Just x) = (`queryAppend` (k,x))
+maybeAppend _ Nothing = id
+
 -- | Redirect back with an error, or just bail out
 err :: (Monad m) => Maybe URI -> String -> m Response
 err (Just uri) s = redirect' seeOther303 [] (uri `queryAppend` ("error",s))
@@ -46,8 +53,6 @@ formRedirect _ req =
 			Nothing -> err (q "redirect_uri" >>= parseAbsoluteURI) "No payment processor specified"
 	where
 	keys = ["to","name","amount","currency","description","dt","redirect_uri"]
-	maybeAppend k (Just x) = (`queryAppend` (k,x))
-	maybeAppend _ Nothing = id
 	q k = textToString <$> queryLookup k (queryString req)
 
 kwsoda :: URI -> Application
@@ -56,4 +61,33 @@ kwsoda _ req = textBuilder ok200 [htmlCT] $ viewKwsoda htmlEscape SodaView {
 		amount = fromMaybe (fromString "2.00") (q "amount")
 	}
 	where
+	q k = queryLookup k (queryString req)
+
+ripple :: URI -> Application
+ripple _ req = case (q "to", q "amount", q "currency", q "redirect_uri") of
+	(Nothing, _, _, ruri) -> err (ruri >>= parseAbsoluteURI . textToString)
+		"No payment target specified"
+	(_, Just _, Nothing, ruri) -> err (ruri >>= parseAbsoluteURI . textToString)
+		"Amount specified, but currency omitted"
+	(Just to, amount, currency, Just ruri) ->
+		textBuilder ok200 [htmlCT] $ viewRipple htmlEscape RippleView {
+			base = show uri,
+			redirect_uri = ruri,
+			to = to,
+			to_md5 = show $ md5 $ LZ.fromStrict $ encodeUtf8 to,
+			name = q "name",
+			description = q "description",
+			amnt = amount,
+			currency = currency,
+			dt = q "dt"
+		}
+	_ -> redirect' seeOther303 [] uri
+	where
+	uri = maybeAppend "amount" amnt $
+		foldl' (\u (k,k') -> maybeAppend k' (textToString <$> q k) u)
+			(URI "https:" (Just $ URIAuth "" "ripple.com" "") "//send" "" "") keys
+	amnt = case (q "amount", q "currency") of
+		(Just a, Just c) -> Just $ textToString a ++ "/" ++ textToString c
+		_ -> Nothing
+	keys = [("to", "to"), ("name", "name"), ("description", "label"), ("dt", "dt")]
 	q k = queryLookup k (queryString req)

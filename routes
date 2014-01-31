@@ -1,2 +1,3 @@
 GET /forms => formRedirect
 GET /kwsoda => kwsoda
+GET /ripple => ripple

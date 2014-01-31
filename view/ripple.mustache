@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<title>Make a Ripple Payment</title>
+		<link rel="shortcut icon" type="image/png" href="/favicon.ico" />
+		<link rel="stylesheet" type="text/css" href="/assets/styles.css" />
+
+		<style type="text/css">
+			header {
+				margin-bottom: 4em;
+			}
+
+			form {
+				display: inline;
+				padding: 0;
+				margin: 0;
+			}
+
+			button, button:active {
+				display: inline;
+				font-size: 1em;
+				margin: 0;
+				padding: 0;
+				background: none;
+				border-width: 0px;
+				cursor: pointer;
+				color: #00b;
+			}
+
+			button:hover {
+				color: #0b0;
+			}
+
+			button::-moz-focus-inner {
+			    padding: 0;
+			    border: 0;
+			}
+
+			#gravatar {
+				float: right;
+				margin: 1em;
+			}
+		</style>
+	</head>
+
+	<body>
+		{{> header.mustache}}
+
+		<img id="gravatar" src="http://www.gravatar.com/avatar/{{to_md5}}?d=identicon" alt="" />
+
+		<p>
+			You are about to make a payment to
+			{{#name}}<abbr title="{{to}}">{{.}}</abbr>{{/name}}
+			{{^name}}{{to}}{{/name}}
+
+			{{#amnt}}of {{.}}/{{currency}}{{/amnt}}
+			{{#description}}for {{.}}{{/description}}
+		</p>
+
+		<a target="_blank" href="{{base}}">Complete the payment</a> and then
+		<form method="post" action="{{redirect_uri}}">
+			<input type="hidden" name="to" value="{{to}}" />
+			<input type="hidden" name="amount" value="{{amnt}}" />
+			<input type="hidden" name="currency" value="{{currency}}" />
+
+			{{#dt}}
+				<input type="hidden" name="dt" value="{{.}}" />
+			{{/dt}}
+
+			<button type="submit">
+				return to
+				{{#name}}{{.}}{{/name}}
+				{{^name}}the merchant{{/name}}
+			</button>
+		</form>
+	</body>
+</html>
