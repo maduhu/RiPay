@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		{{> meta.mustache}}
+	</head>
+
+	<body>
+		<h1>Pay the KwartzLab Drink Fridge</h1>
+
+		<!-- simple-form would be massive overkill -->
+		<form method="get" action="/forms">
+			<input type="hidden" name="to" value="rsR4zKotasCbzkeG73Y6HV4F8ZQe1gxBZC" />
+			<input type="hidden" name="currency" value="CAD" />
+			<input type="hidden" name="description" value="Drink" />
+			<input type="hidden" name="name" value="KwartzLab Drink Fridge" />
+
+			{{#alert}}
+				<p class="error">There was a problem at the payment processor: {{.}}</p>
+			{{/alert}}
+
+			<label>$</label><input type="number" name="amount" value="{{amount}}" />
+
+			<fieldset>
+				<legend>Pay with</legend>
+				<button type="submit" name="_processor" value="https://classic.rippleunion.com/payment">
+					<img src="/assets/ripplepayBig.png" alt="RipplePay.com" />
+				</button>
+
+				<button type="submit" name="_processor" value="https://payments.rippleunion.com/ripple">
+					<img src="/assets/rippleButtonBig.png" alt="Ripple" />
+				</button>
+			</fieldset>
+		</form>
+	</body>
+</html>

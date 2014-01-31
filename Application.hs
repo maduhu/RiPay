@@ -1,14 +1,28 @@
 {-# LANGUAGE CPP #-}
-module Application (formRedirect) where
+module Application (formRedirect, kwsoda) where
 
 import Prelude ()
 import BasicPrelude
 
 import Network.Wai (Application, Response, queryString)
-import Network.HTTP.Types (badRequest400, seeOther303)
-import Network.Wai.Util (queryLookup, string, redirect')
+import Network.HTTP.Types (ok200, badRequest400, seeOther303)
+import Network.Wai.Util (queryLookup, string, redirect', textBuilder, stringHeaders)
 
 import Network.URI (URI(..), escapeURIString, isUnescapedInURIComponent, parseAbsoluteURI)
+
+import Records
+import MustacheTemplates
+
+Just [htmlCT] = stringHeaders [("Content-Type", "text/html; charset=utf-8")]
+
+htmlEscape :: String -> String
+htmlEscape = concatMap escChar
+	where
+	escChar '&' = "&amp;"
+	escChar '"' = "&quot;"
+	escChar '<' = "&lt;"
+	escChar '>' = "&gt;"
+	escChar c   = [c]
 
 -- | Append pair to query string
 queryAppend :: URI -> (String,String) -> URI
@@ -35,3 +49,11 @@ formRedirect _ req =
 	maybeAppend k (Just x) = (`queryAppend` (k,x))
 	maybeAppend _ Nothing = id
 	q k = textToString <$> queryLookup k (queryString req)
+
+kwsoda :: URI -> Application
+kwsoda _ req = textBuilder ok200 [htmlCT] $ viewKwsoda htmlEscape SodaView {
+		alert = q "error",
+		amount = fromMaybe (fromString "2.00") (q "amount")
+	}
+	where
+	q k = queryLookup k (queryString req)

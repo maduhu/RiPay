@@ -1,0 +1,34 @@
+@import "//rippleunion.com/base.css";
+
+body {
+	text-align: center;
+}
+
+form {
+	display: table;
+	margin: auto;
+}
+
+label, input {
+	font-size: 2em;
+}
+input {
+	width: 3em;
+}
+
+button, button:active {
+	margin: 0;
+	padding: 0;
+	background: none;
+	border-width: 0px;
+	cursor: pointer;
+}
+
+fieldset {
+	margin-top: 1em;
+}
+
+.error {
+	padding: 1em;
+	background-color: #c00;
+}

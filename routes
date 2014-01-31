@@ -1,1 +1,2 @@
 GET /forms => formRedirect
+GET /kwsoda => kwsoda
