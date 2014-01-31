@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<title>RiPay</title>
+		<link rel="shortcut icon" type="image/png" href="//rippleunion.com/favicon.ico" />
+		<link rel="stylesheet" type="text/css" href="//rippleunion.com/base.css" />
+
+		<style type="text/css">
+			#supporting-processors li {
+				clear: both;
+			}
+
+			#supporting-processors img {
+				float: right;
+				margin-left: 1em;
+				margin-bottom: 1em;
+			}
+		</style>
+	</head>
+
+	<body>
+
+<header>
+	<h1><a href="//rippleunion.com/"><img src="//rippleunion.com/logo.png" alt="Ripple Union" /></a> RiPay</h1>
+
+	<nav>
+		<ul>
+			<li><a href="//etransfer.rippleunion.com/">Interac e-Transfer</a></li>
+			<li><a href="//giftcards.rippleunion.com/">Amazon Giftcards</a></li>
+			<li><a href="//shop.rippleunion.com/">Shop</a></li>
+			<li><a href="//faq.rippleunion.com/">FAQ</a></li>
+		</ul>
+	</nav>
+</header>
+
+	<p>The purpose of this initiative is to free consumers from the need to use only payment methods that a merchant has decided to trust, and to also free merchants from the need to trust every payment processor they want to accept.  Funds can be held at any trusted Ripple Gateway, and the liquidity system takes care of the rest.  This can also be seen as a way to allow consumers to make Ripple payments to merchants without needing any knowledge of the Ripple system itself.</p>
+
+	<p>In a nutshell, this initiative is a set of best practices for payment processors and merchants such that they act as a Ripple Gateway that sends money directly to the target merchant instead of to a user's Ripple address.</p>
+
+	<section id="processors">
+		<h1>What must a payment processor provide?</h1>
+
+		<p>A payment processor must provide a page that accepts GET requests specfying a payment that is to be made using a query string with the following parametres (all parametres except <var>to</var>, <var>amount</var>, and <var>currency</var> are optional):</p>
+
+		<dl>
+			<dt>to</dt>
+			<dd>Ripple address of the merchant</dd>
+
+			<dt>dt</dt>
+			<dd>Ripple destination tag</dd>
+
+			<dt>name</dt>
+			<dd>Human-friendly name of the merchant</dd>
+
+			<dt>amount</dt>
+			<dd>Unitless amount, as a decimal number</dd>
+
+			<dt>currency</dt>
+			<dd>Three-letter currency code for the payment</dd>
+
+			<dt>description</dt>
+			<dd>Description of the transaction as a noun phrase</dd>
+
+			<dt>redirect_uri</dt>
+			<dd>URI to be sent back to when transaction completes</dd>
+		</dl>
+
+		<p>Example link: <code>https://payments.rippleunion.com/ripple/?to=rsR4zKotasCbzkeG73Y6HV4F8ZQe1gxBZC&amp;dt=123&amp;name=Drink%20Fridge&amp;amount=2&amp;currency=CAD&amp;description=soda</code></p>
+
+		<p>When a request is made to this page, the payment processor <strong>must</strong> check if there is a liquidity path for the specified amount from the payment processor to the specified address.  If there is not, then if <var>redirect_uri</var> was specified a redirect (HTTP status 303) must be issued to the given URI with all the query parametres received added to it, and also a parametre of <var>error</var> added with a description of the error.  If there was an error, but <var>redirect_uri</var> is not specified, then an error message should be displayed to the user.</p>
+
+		<p>If there is sufficient liquidity, the user shall be prompted to make a payment using the mechanism(s) supported by the payment processor.  The payment processor can know the exact exchange rate / fees that will be required by the available liquidity, and charge appropriately.  The human-friendly name of the merchant may be displayed, but the full Ripple address <strong>must</strong> be either displayed or placed as an &lt;abbr&gt; on the human-friendly name (to prevent spoofing).  Displaying the identicon of the md5 hash of the address may also be useful.</p>
+
+		<p>Payment processors <strong>must</strong> be aware that any liquidity they have discovered might go away before the transaction completes.  This is often called "slippage".  It is <strong>recommended</strong> to charge a small fee for your service, out of which slippage costs may be paid.</p>
+
+		<p>On completion of the payment, the payment processor must send the payment of the correct amount in the correct currency to the destination address (and optional destination tag).  If a <var>redirect_uri</var> was specified, the user agent <strong>must</strong> be directed to POST to that URI with a form-encoded body containing the <var>to</var>, <var>amount</var>, <var>currency</var>, and <var>dt</var> parametres.</p>
+	</section>
+
+	<section id="merchants">
+		<h1>What must a merchant do?</h1>
+
+		<p>A merchant must provide widgets that allow consumers to choose from one or more payment processors, as well as optionally an "other" option that prompts the consumer for the URI of their payment processor's page (as specified above).  The merchant then arranges for the consumer's User Agent to GET the payment processor's page with the correct parametres.  The merchant <strong>should</strong> generate a new destination tag for each transaction.</p>
+
+		<p>The merchant <strong>must</strong> monitor for inbound payments to their Ripple address (for example, using <a href="https://github.com/singpolyma/ripple-rails">ripple-rails</a>) and mark payment as completed when a matching transaction executes.  This is similar to the webhook callback mechanisms many existing payment processors use.</p>
+	</section>
+
+	<section id="merchant-resources">
+		<h1>Resources for Merchants</h1>
+
+		<ul>
+			<li>https://payments.rippleunion.com/forms accepts either POST or GET requests with parametres as specified above, with the addition of a parametre, <var>_processor</var>, that specifies the URI of the payment processor page to use.  This can be useful for very simple payment forms.</li>
+		</ul>
+	</section>
+
+	<section id="supporting-processors">
+		<h1>Supporting Payment Processors</h1>
+
+		<ul>
+			<li><img src="/assets/rippleButtonBig.png" alt=""/> https://payments.rippleunion.com/ripple is a pseudo-processor that redirects to a <a href="https://ripple.com/wiki/Ripple_URIs">Ripple URI</a> for making payment with a Ripple account.</li>
+
+			<li><img src="/assets/ripplepayBig.png" alt="" /> https://classic.rippleunion.com/payment is a processor that accepts payments from <a href="https://classic.ripplepay.com/">Ripple Classic</a>.</li>
+		</ul>
+	</section>
+
+	<section id="example-merchant">
+		<h1>Example Merchant</h1>
+
+		<p>A very simple example merchant is the <a href="https://payments.rippleunion.com/kwsoda">KwartzLab Drink Fridge</a>.</p>
+	</section>
+
+	</body>
+</html>
