@@ -37,7 +37,7 @@
 			    border: 0;
 			}
 
-			#gravatar {
+			#identicon {
 				float: right;
 				margin: 1em;
 			}
@@ -47,7 +47,7 @@
 	<body>
 		{{> header.mustache}}
 
-		<img id="gravatar" src="http://www.gravatar.com/avatar/{{to_md5}}?d=identicon" alt="" />
+		<img id="identicon" src="https://sigil.cupcake.io/{{to_md5}}?w=60" alt="" />
 
 		<p>
 			You are about to make a payment to

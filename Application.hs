@@ -3,7 +3,10 @@ module Application (formRedirect, kwsoda, ripple) where
 
 import Prelude ()
 import BasicPrelude
+import Data.Base58Address (rippleAddressPayload)
 import Data.Digest.Pure.MD5 (md5)
+import Crypto.Util (i2bs_unsized)
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as LZ
 
 import Network.Wai (Application, Response, queryString)
@@ -64,7 +67,7 @@ kwsoda _ req = textBuilder ok200 [htmlCT] $ viewKwsoda htmlEscape SodaView {
 	q k = queryLookup k (queryString req)
 
 ripple :: URI -> Application
-ripple _ req = case (q "to", q "amount", q "currency", q "redirect_uri") of
+ripple _ req = case (q "to" >>= readMay, q "amount", q "currency", q "redirect_uri") of
 	(Nothing, _, _, ruri) -> err (ruri >>= parseAbsoluteURI . textToString)
 		"No payment target specified"
 	(_, Just _, Nothing, ruri) -> err (ruri >>= parseAbsoluteURI . textToString)
@@ -73,8 +76,9 @@ ripple _ req = case (q "to", q "amount", q "currency", q "redirect_uri") of
 		textBuilder ok200 [htmlCT] $ viewRipple htmlEscape RippleView {
 			base = show uri,
 			redirect_uri = ruri,
-			to = to,
-			to_md5 = show $ md5 $ LZ.fromStrict $ encodeUtf8 to,
+			to = show to,
+			to_md5 = show $ md5 $ LZ.fromChunks
+				[BS.singleton 0, i2bs_unsized $ rippleAddressPayload to],
 			name = q "name",
 			description = q "description",
 			amnt = amount,
