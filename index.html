@@ -68,7 +68,7 @@
 			<dd>URI to be sent back to when transaction completes</dd>
 		</dl>
 
-		<p>Example link: <code>https://payments.rippleunion.com/ripple/?to=rsR4zKotasCbzkeG73Y6HV4F8ZQe1gxBZC&amp;dt=123&amp;name=Drink%20Fridge&amp;amount=2&amp;currency=CAD&amp;description=soda</code></p>
+		<p>Example link: <code>https://payments.rippleunion.com/ripple?to=rsR4zKotasCbzkeG73Y6HV4F8ZQe1gxBZC&amp;dt=123&amp;name=Drink%20Fridge&amp;amount=2&amp;currency=CAD&amp;description=soda</code></p>
 
 		<p>When a request is made to this page, the payment processor <strong>must</strong> check if there is a liquidity path for the specified amount from the payment processor to the specified address.  If there is not, then if <var>redirect_uri</var> was specified a redirect (HTTP status 303) must be issued to the given URI with all the query parametres received added to it, and also a parametre of <var>error</var> added with a description of the error.  If there was an error, but <var>redirect_uri</var> is not specified, then an error message should be displayed to the user.</p>
 
